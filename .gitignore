@@ -7,8 +7,8 @@ eggs/
 .eggs/
 *.egg-info/
 # Data
-.csv
-.json
+*.csv
+*.json
 
 
 
