@@ -71,11 +71,6 @@ def traj_collect(traj_num,batch_size=1000):
 
 
 
-
-
-
-
-
 if __name__ == "__main__":
     # Parameters
     step = 5000
