@@ -5,7 +5,6 @@ from tqdm import tqdm
 import gym
 import time
 import flexible_bus
-from policy import model_3
 import json
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
@@ -37,9 +36,12 @@ def traj_simulate(seed,gamma,base_policy):
     
     while not done:
         trajectory["observations"].append(obs.tolist() if isinstance(obs, np.ndarray) else obs)
-        [p1, p2] = model_3(obs)
+        obs = torch.tensor(obs,dtype=torch.float32)
+        [p1, p2] = base_policy(obs)
+        p1 = p1.item()
+        p2 = p2.item()
         direct_action = [p1, p2]
-        trajectory["actions"].append(direct_action.tolist() if isinstance(direct_action, np.ndarray) else direct_action)
+        trajectory["direct_actions"].append(direct_action.tolist() if isinstance(direct_action, np.ndarray) else direct_action)
         deviate_1 = int(np.random.choice([0, 1], p=[1-p1, p1]))
         deviate_2 = int(np.random.choice([0, 1], p=[1-p2, p2]))
         action = [deviate_1,deviate_2]  
@@ -48,42 +50,6 @@ def traj_simulate(seed,gamma,base_policy):
         r = r * gamma + rewards
     trajectory["return"] = r
     return trajectory, r
-
-def traj_save_json(trajectories, filepath):
-    """Save trajectories to a JSON file
-       Save reward list to txt file
-    """
-    def custom_serializer(obj):
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        if isinstance(obj, int):  # Ensure integers remain integers
-            return obj
-        return str(obj)
-    
-    with open(filepath, 'w') as f:
-        json.dump(trajectories, f, indent=4, default=custom_serializer)
-
-def traj_collect(traj_num,gamma,base_policy,batch_size=1000):
-    all_traj = []
-    all_return = []
-    traj_simulate_ = partial(traj_simulate, gamma=gamma, base_policy=base_policy)
-    
-    # Create directory dynamically based on `base_policy`
-    folder_path = f"./Trajectories/{base_policy[0]}_{base_policy[1]}/"
-    os.makedirs(folder_path, exist_ok=True)
-    
-    with ProcessPoolExecutor() as executor:
-        for batch_start in tqdm(range(0, traj_num, batch_size), desc="Processing batches"):
-            seeds = range(batch_start, min(batch_start + batch_size, traj_num))
-            results = executor.map(traj_simulate_, seeds)
-            for traj, ret in results:
-                all_traj.append(traj)
-                all_return.append(ret)
-
-    # Save trajectories to JSON and return list to txt
-    np.savetxt(f"{folder_path}/return_list.txt", all_return)
-    traj_save_json(all_traj, f"{folder_path}/trajectories.json")
-    return all_traj,all_return
 
 class Behavioural(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
@@ -97,22 +63,63 @@ class Behavioural(nn.Module):
     def forward(self, x):
         return self.model(x)
 
+def traj_collect(traj_num, gamma, base_policy, batch_size=1000):
+    all_rows = []
+    all_return = []
+
+    traj_simulate_ = partial(traj_simulate, gamma=gamma, base_policy=base_policy)
+
+
+
+    with ProcessPoolExecutor() as executor:
+        for batch_start in tqdm(range(0, traj_num, batch_size), desc="Processing batches"):
+            seeds = range(batch_start, min(batch_start + batch_size, traj_num))
+            results = executor.map(traj_simulate_, seeds)
+            for traj_id, (traj, ret) in enumerate(results):
+                observations = traj["observations"]
+                direct_actions = traj["direct_actions"]
+                actions = traj["actions"]
+                row = {
+                    "trajectory_id": batch_start + traj_id,
+                    "return": ret
+                }
+                for t in range(len(observations)):
+                    obs = observations[t]
+                    da = direct_actions[t] 
+                    a = actions[t]
+
+
+                    # Flatten observation
+
+                    row[f"obs_{t}"] = obs
+
+                    row[f"action_{t}"] = da
+
+                    row[f"direct_action_{t}"] = a
+
+
+                    
+                all_rows.append(row)
+
+                all_return.append(ret)
+
+    df = pd.DataFrame(all_rows)
+    df.to_parquet("./Traject/trajectories.pq")
+    np.savetxt("./return_list.txt", all_return)
+
+    return df, all_return
+
 if __name__ == "__main__":
     # Parameters
-    max_epochs = 1000000
-    step = 5000
-    min_epochs = 1000
-    alpha = 0.05  # Adjust based on desired sensitivity
-    traj_num = 1000000
+    # traj_num = 1000000
+    traj_num = 1000
     gamma = 0.99
-    confidence_level = 0.9
     behavior_pi = Behavioural(input_dim=5, hidden_dim=64, output_dim=2)
     # 2. Load the weights into it
     behavior_pi.load_state_dict(torch.load("./Behavioural_model.pth"))
-    for i in tqdm(range(9),desc="Outer_loop"):
-        for j in tqdm(range(9),desc="Inter_loop"): 
-            start_time = time.time()  # Record the start time
-            traj_list,return_list = traj_collect(traj_num=traj_num,gamma=gamma,base_policy=behavior_pi)
-            end_time = time.time()  # Record the end time
-            elapsed_time = end_time - start_time  # Calculate elapsed time
-            print(f"Elapsed time: {elapsed_time:.4f} seconds")
+
+    start_time = time.time()  # Record the start time
+    traj_list,return_list = traj_collect(traj_num=traj_num,gamma=gamma,base_policy=behavior_pi)
+    end_time = time.time()  # Record the end time
+    elapsed_time = end_time - start_time  # Calculate elapsed time
+    print(f"Elapsed time: {elapsed_time:.4f} seconds")
