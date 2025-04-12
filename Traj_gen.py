@@ -9,6 +9,7 @@ import json
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 import os
+from Behaviour_pi import Behavioural, Policy
 
 import pandas as pd
 import torch
@@ -51,17 +52,6 @@ def traj_simulate(seed,gamma,base_policy):
     trajectory["return"] = r
     return trajectory, r
 
-class Behavioural(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim):
-        super().__init__()
-        self.model = nn.Sequential(
-            nn.Linear(input_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, output_dim)
-        )
-
-    def forward(self, x):
-        return self.model(x)
 
 def traj_collect(traj_num, gamma, base_policy, batch_size=1000):
     all_rows = []
@@ -104,19 +94,19 @@ def traj_collect(traj_num, gamma, base_policy, batch_size=1000):
                 all_return.append(ret)
 
     df = pd.DataFrame(all_rows)
-    df.to_parquet("./Traject/trajectories.pq")
+    df.to_parquet("./Traject/trajectories_2.pq")
     np.savetxt("./return_list.txt", all_return)
 
     return df, all_return
 
 if __name__ == "__main__":
     # Parameters
-    # traj_num = 1000000
-    traj_num = 1000
+    traj_num = 1000000
+    # traj_num = 1000
     gamma = 0.99
-    behavior_pi = Behavioural(input_dim=5, hidden_dim=64, output_dim=2)
+    behavior_pi = Behavioural()
     # 2. Load the weights into it
-    behavior_pi.load_state_dict(torch.load("./Behavioural_model.pth"))
+    behavior_pi.load_state_dict(torch.load("./Behavioural_model_2.pth"))
 
     start_time = time.time()  # Record the start time
     traj_list,return_list = traj_collect(traj_num=traj_num,gamma=gamma,base_policy=behavior_pi)
