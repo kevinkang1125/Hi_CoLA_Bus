@@ -94,8 +94,8 @@ def traj_collect(traj_num, gamma, base_policy, batch_size=1000):
                 all_return.append(ret)
 
     df = pd.DataFrame(all_rows)
-    df.to_parquet("./Traject/trajectories_2.pq")
-    np.savetxt("./return_list.txt", all_return)
+    df.to_parquet("./Traject/trajectories_optimized.pq")
+    np.savetxt("./return_list_optimized.txt", all_return)
 
     return df, all_return
 
@@ -106,7 +106,8 @@ if __name__ == "__main__":
     gamma = 0.99
     behavior_pi = Behavioural()
     # 2. Load the weights into it
-    behavior_pi.load_state_dict(torch.load("./Behavioural_model_2.pth"))
+    # behavior_pi.load_state_dict(torch.load("./Behavioural_model_2.pth"))
+    behavior_pi.load_state_dict(torch.load("./Optimized_Behavioural_model.pth"))
 
     start_time = time.time()  # Record the start time
     traj_list,return_list = traj_collect(traj_num=traj_num,gamma=gamma,base_policy=behavior_pi)

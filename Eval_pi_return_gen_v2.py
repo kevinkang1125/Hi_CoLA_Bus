@@ -51,7 +51,7 @@ def simulate_batch_gpu(batch_seeds, gamma, policy_path, device="cuda"):
 
 
 # === Master batch manager ===
-def return_collect_gpu(traj_num, gamma, policy_path, batch_size=1000, pi_id=0, num_workers=None):
+def return_collect_gpu(traj_num, gamma, policy_path, batch_size=1000,num_workers=None):
     all_returns = []
 
     seeds = np.arange(traj_num)
@@ -64,21 +64,22 @@ def return_collect_gpu(traj_num, gamma, policy_path, batch_size=1000, pi_id=0, n
         for batch_returns in tqdm(pool.imap(simulate_partial, seed_batches), total=len(seed_batches), desc="Simulating Batches on GPU"):
             all_returns.extend(batch_returns)
 
-    np.savetxt(f"./Test/return_list_{pi_id}.txt", all_returns)
+    
     return all_returns
 
 
-# === Main runner ===
 if __name__ == "__main__":
     traj_num = 800000
-    gamma = 0.99
+    gamma = 0.9
     start_time = time.time()
-    for pi_id in range(100):
-        policy_path = f"./Policys/Perturbed_model_{pi_id}.pth"
-
-
-        return_list = return_collect_gpu(traj_num, gamma, policy_path, batch_size=1000, pi_id=pi_id)
-        
+    for m in range(2,5):
+        bin = m*0.1
+        folder_name = f"./Policys/{bin:.1f}-{bin+0.1:.1f}/"
+        for pi_id in range(100):
+            file_name = f"Perturbed_model_{pi_id}.pth"
+            policy_path = os.path.join(folder_name, file_name)
+            return_list = return_collect_gpu(traj_num, gamma, policy_path, batch_size=1000)
+            np.savetxt(f"./Results/KL_Critical_Value_Check_EXP/{bin:.1f}-{bin+0.1:.1f}/return_list_{pi_id}.txt", return_list)
     elapsed = time.time() - start_time
 
     print(f"✅ Elapsed time (GPU): {elapsed:.2f} seconds")

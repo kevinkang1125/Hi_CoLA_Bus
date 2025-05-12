@@ -15,52 +15,9 @@ import os
 import torch
 import torch.nn as nn
 import pandas as pd
+import numpy as np
 
 
-
-
-def importance_sample_local(traj_list,eval_pi,behave_pi,traj_len=5):
-    return_list = traj_list.iloc[:, 1].to_numpy()
-    up_b, low_b = max(return_list), min(return_list)
-    iw_ls = []
-    wr_ls=[] #weighte return list
-    # up_b, low_b = max(return_list), min(return_list)
-    for j in range(len(traj_list)):
-        for i in range(traj_len):
-            obs = traj_list.iloc[j][f"obs_{i}"]
-            a = traj_list.iloc[j][f"direct_action_{i}"]
-            obs = torch.tensor(obs,dtype=torch.float32)
-            eval_out = eval_pi(obs)
-            behave_out = behave_pi(obs)
-            eval_policy = [[1-eval_out[0].item(),eval_out[0].item()],[1-eval_out[1].item(),eval_out[1].item()]]
-            base_policy = [[1-behave_out[0].item(),behave_out[0].item()],[1-behave_out[1].item(),behave_out[1].item()]]
-            importance_weights =((eval_policy[0][a[0]] * eval_policy[1][a[1]]) /(base_policy[0][a[0]] * base_policy[1][a[1]]))
-            iw_ls.append(importance_weights)
-        importance_weight = np.prod(iw_ls)
-        norm_return = (traj_list.iloc[j]["return"] - low_b) / (up_b - low_b)
-        wr = norm_return*importance_weight
-        wr_ls.append(wr)
-    return wr_ls
-
-# def importance_sample_global(traj_list,eval_pi,behave_pi,up_b,low_b,traj_len=5):
-#     iw_ls = []
-#     wr_ls=[] #weighte return list
-#     for j in range(len(traj_list)):
-#         for i in range(traj_len):
-#             obs = traj_list.iloc[j][f"obs_{i}"]
-#             a = traj_list.iloc[j][f"direct_action_{i}"]
-#             obs = torch.tensor(obs,dtype=torch.float32)
-#             eval_out = eval_pi(obs)
-#             behave_out = behave_pi(obs)
-#             eval_policy = [[1-eval_out[0].item(),eval_out[0].item()],[1-eval_out[1].item(),eval_out[1].item()]]
-#             base_policy = [[1-behave_out[0].item(),behave_out[0].item()],[1-behave_out[1].item(),behave_out[1].item()]]
-#             importance_weights =((eval_policy[0][a[0]] * eval_policy[1][a[1]]) /(base_policy[0][a[0]] * base_policy[1][a[1]]))
-#             iw_ls.append(importance_weights)
-#         importance_weight = np.prod(iw_ls)
-#         norm_return = (traj_list.iloc[j]["return"] - low_b) / (up_b - low_b)
-#         wr = norm_return*importance_weight
-#         wr_ls.append(wr)
-#     return wr_ls
 
 def importance_sample_global(traj_df, eval_pi, behave_pi, up_b, low_b, traj_len=5, device="cuda"):
     # Move models to GPU if needed
@@ -207,7 +164,7 @@ if __name__ == "__main__":
     #     for j in tqdm(range(9),desc="Inter_loop"): 
     start_time = time.time()  # Record the start times
     base_policy = Behavioural()
-    base_policy.load_state_dict(torch.load("./Behavioural_model_2.pth"))
+    base_policy.load_state_dict(torch.load("./Behavioural_model.pth"))
     traj_list = pd.read_parquet("./Traject/trajectories_2.pq")
     return_list = np.loadtxt("./return_list.txt")
     lb_list = []
