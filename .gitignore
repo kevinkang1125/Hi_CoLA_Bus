@@ -9,6 +9,10 @@ eggs/
 # Data
 *.csv
 *.json
+./Results/
+Results/
+Hi_CoLA_Trainset/
+./Hi_CoLA_Trainset/
 
 
 
