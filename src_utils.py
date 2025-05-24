@@ -27,6 +27,10 @@ def perturb_add(pi, sigma=0.3):
                 param.add_(noise)
     return pi_perturbed
 
+def get_flat_params(model):
+    # Flatten the Behavioural model's parameters into a vector
+    return torch.cat([p.view(-1) for p in model.parameters()])
+
 # def kl_filter(pi, traj, sigma=0.3, kl_threshold=0.3):
 #     df = pd.read_csv(traj)
 #     states = torch.tensor(df.iloc[:60000, :5].values, dtype=torch.float32)
