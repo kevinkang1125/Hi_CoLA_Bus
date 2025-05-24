@@ -17,7 +17,7 @@ def kl_between_policies(pi_perturbed, pi, states,eps=1e-8):
         kl_vals = (p * torch.log(p / q) + (1 - p) * torch.log((1 - p) / (1 - q))).sum(dim=-1)
     return kl_vals.mean()
 
-def perturb_add(pi, sigma=0.25):
+def perturb_add(pi, sigma=0.3):
     pi_perturbed = Policy()
     pi_perturbed.load_state_dict(pi.state_dict())
     with torch.no_grad():
@@ -27,17 +27,17 @@ def perturb_add(pi, sigma=0.25):
                 param.add_(noise)
     return pi_perturbed
 
-def kl_filter(pi, traj, sigma=0.3, kl_threshold=0.3):
-    df = pd.read_csv(traj)
-    states = torch.tensor(df.iloc[:60000, :5].values, dtype=torch.float32)
-    behavior_pi = Behavioural()
-    behavior_pi.load_state_dict(torch.load("./Behavioural_model_2.pth"))
+# def kl_filter(pi, traj, sigma=0.3, kl_threshold=0.3):
+#     df = pd.read_csv(traj)
+#     states = torch.tensor(df.iloc[:60000, :5].values, dtype=torch.float32)
+#     behavior_pi = Behavioural()
+#     behavior_pi.load_state_dict(torch.load("./Behavioural_model_2.pth"))
 
-    target_count = 200
-    bin_counts = {f"{round(start,1):.1f}-{round(start+0.1,1):.1f}": 0 for start in np.arange(0, 0.5, 0.1)}
-    bin_indices = {k: 0 for k in bin_counts.keys()}  # for naming files
+#     target_count = 200
+#     bin_counts = {f"{round(start,1):.1f}-{round(start+0.1,1):.1f}": 0 for start in np.arange(0, 0.5, 0.1)}
+#     bin_indices = {k: 0 for k in bin_counts.keys()}  # for naming files
 
-    sigma = 0.4
+#     sigma = 0.4
 
     # while not all(count >= target_count for count in bin_counts.values()):
     #     pi_perturbed = perturb_add(pi=behavior_pi, sigma=sigma)
@@ -53,5 +53,5 @@ def kl_filter(pi, traj, sigma=0.3, kl_threshold=0.3):
     #             bin_counts[folder] += 1
     #             bin_indices[folder] += 1
     #             print(f"Saved to {folder}/{filename} (KL={kl_score:.4f}) — count: {bin_counts[folder]}/{target_count}")
-    pass
+    # pass
 
