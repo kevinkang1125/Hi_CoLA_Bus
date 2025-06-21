@@ -13,6 +13,7 @@ eggs/
 Results/
 Hi_CoLA_Trainset/
 ./Hi_CoLA_Trainset/
+*.pth
 
 
 

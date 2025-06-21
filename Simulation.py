@@ -14,7 +14,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 
-def traj_simulate(seed,env, gamma,b_policy):
+def traj_simulate(seed,env, gamma,base_policy):
     
     """
     Func to Simulate the FRD process
@@ -36,7 +36,7 @@ def traj_simulate(seed,env, gamma,b_policy):
     while not done:
         trajectory["observations"].append(obs.tolist() if isinstance(obs, np.ndarray) else obs)
         obs = torch.tensor(obs,dtype=torch.float32)
-        [p1, p2] = b_policy(obs)
+        [p1, p2] = base_policy(obs)
         p1 = p1.item()
         p2 = p2.item()
         direct_action = [p1, p2]

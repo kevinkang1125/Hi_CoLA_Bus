@@ -40,6 +40,7 @@ if __name__ == "__main__":
     epoch_record = []
     done = False
     b_loop = 0
+    stop_signal = 11
     while not done:
         start_time = time.time()  # Record the start time
         traj_list,return_list = traj_collect(env = env,traj_num=traj_num,gamma=gamma,base_policy=behavior_pi)
@@ -117,10 +118,14 @@ if __name__ == "__main__":
         elapsed_time = end_time - start_time  # Calculate elapsed time
         print(f"train time per epoch: {elapsed_time:.4f} seconds")
         b_loop += 1
+        if b_loop >= stop_signal:
+            done = True
         print(f"Behavioral Loop {b_loop} finished, confidence lowerbound: {confidence_lb.item():.4f}")
         behavior_pi =copy.deepcopy(behavior_pi).cpu()
         np.savetxt("Confidence_Lowerbound_Record.txt", result_rec, delimiter=",")
         np.savetxt("Epoch_Record.txt", epoch_record, delimiter=",")
+        np.savetxt(f"raw_reward_{b_loop}.txt", return_list, delimiter=",")
+        
 
 
 

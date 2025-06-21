@@ -33,7 +33,7 @@ def load_model_features_and_labels(features, labels, train_ratio=0.7,logit=False
     policy_params = [] 
     for model_path in features:
 
-        model = torch.load(model_path)
+        model = model_path
 
         # Flatten all parameters to 1D feature vector
         flat_params = []

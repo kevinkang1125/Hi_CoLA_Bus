@@ -17,6 +17,29 @@ def kl_between_policies(pi_perturbed, pi, states,eps=1e-8):
         kl_vals = (p * torch.log(p / q) + (1 - p) * torch.log((1 - p) / (1 - q))).sum(dim=-1)
     return kl_vals.mean()
 
+def perturb_add_v2(pi, c=0.3):
+    """
+    Perturb the policy parameters with Gaussian noise where sigma is proportional to each weight's magnitude.
+
+    Args:
+        pi (Policy): the original policy network
+        c (float): proportional constant to scale sigma = c * |weight|
+
+    Returns:
+        pi_perturbed (Policy): the perturbed policy
+    """
+    pi_perturbed = Policy()
+    pi_perturbed.load_state_dict(pi.state_dict())
+
+    with torch.no_grad():
+        for param in pi_perturbed.parameters():
+            if param.requires_grad:
+                sigma = c * param.abs()
+                noise = torch.randn_like(param) * sigma
+                param.add_(noise)
+
+    return pi_perturbed
+
 def perturb_add(pi, sigma=0.3):
     pi_perturbed = Policy()
     pi_perturbed.load_state_dict(pi.state_dict())
