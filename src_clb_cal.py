@@ -116,39 +116,58 @@ def high_confidence_cal(sample,confidence_level = 0.9,tol = 1e-3):
     lower_bound = term_1 - term_2 - term_3
     return best_c, lower_bound
 
-def cb_sliding_window_search(traj_list,return_list,eval_policy,base_policy,epochs,confidence_level):
-    """
-    Function to search for the converged confidence lower bound
-    """
-    return_list = traj_list.iloc[:, 1].to_numpy()
-    max_return, min_return = max(return_list), min(return_list)
-    lower_bound_list, iters = [], []
-    sampled_ids = np.random.choice(len(traj_list), size=epochs, replace=False)
-    sampled_df = traj_list[traj_list["trajectory_id"].isin(sampled_ids)]
-    importance_samples = importance_sample_global(
-        sampled_df, eval_policy, base_policy, max_return, min_return
-    )
-    c_star, lower_bound = high_confidence_cal(importance_samples,confidence_level)
-        #lower_bound_list_ = lower_bound_list
+# def cb_sliding_window_search(traj_list,return_list,eval_policy,base_policy,epochs,confidence_level):
+#     """
+#     Function to search for the converged confidence lower bound
+#     """
+#     return_list = traj_list.iloc[:, 1].to_numpy()
+#     max_return, min_return = max(return_list), min(return_list)
+#     lower_bound_list, iters = [], []
+#     sampled_ids = np.random.choice(len(traj_list), size=epochs, replace=False)
+#     sampled_df = traj_list[traj_list["trajectory_id"].isin(sampled_ids)]
+#     importance_samples = importance_sample_global(
+#         sampled_df, eval_policy, base_policy, max_return, min_return
+#     )
+#     c_star, lower_bound = high_confidence_cal(importance_samples,confidence_level)
+#         #lower_bound_list_ = lower_bound_list
         
-    return lower_bound
+#     return lower_bound
 
-# def Thomas_hc(behavior_pi, eval_policy, traj_list, return_list, confidence_level=0.9):
+
+
+# def Thomas_hc_v0(behavior_pi, eval_policy, traj_list, return_list,epochs, confidence_level=0.9):
 #     # Parameters
-#     epochs = 800000
-#     step = 2000
-#     min_epochs = 1000
-#     converge = 0.0001
-#     confidence_level = 0.9
+#     # epochs = 200000
 #     base_policy = behavior_pi    
-#     _, lower_bound = cb_sliding_window_search(traj_list,return_list,eval_policy,base_policy,min_epoch=min_epochs,max_epoch=max_epochs,step=step,converge=converge,confidence_level=confidence_level)
+#     lower_bound = cb_sliding_window_search(traj_list,return_list,eval_policy,base_policy,epochs=epochs,confidence_level=confidence_level)
 
 #     return lower_bound
 
 def Thomas_hc(behavior_pi, eval_policy, traj_list, return_list,epochs, confidence_level=0.9):
     # Parameters
     # epochs = 200000
-    base_policy = behavior_pi    
-    lower_bound = cb_sliding_window_search(traj_list,return_list,eval_policy,base_policy,epochs=epochs,confidence_level=confidence_level)
+    base_policy = behavior_pi
+    return_list = traj_list.iloc[:, 1].to_numpy()
+    max_return, min_return = max(return_list), min(return_list)
+    sampled_ids = np.random.choice(len(traj_list), size=epochs, replace=False)
+    sampled_df = traj_list[traj_list["trajectory_id"].isin(sampled_ids)]
+    importance_samples = importance_sample_global(
+        sampled_df, eval_policy, base_policy, max_return, min_return
+    )
+    c_star, lower_bound = high_confidence_cal(importance_samples,confidence_level) 
+
+    return lower_bound
+def Thomas_hc_v2(behavior_pi, eval_policy, traj_list, return_list,epochs, confidence_level=0.9):
+    # Parameters
+    # epochs = 200000
+    base_policy = behavior_pi
+    return_list = traj_list.iloc[:, 1].to_numpy()
+    max_return, min_return = 60, 0
+    sampled_ids = np.random.choice(len(traj_list), size=epochs, replace=False)
+    sampled_df = traj_list[traj_list["trajectory_id"].isin(sampled_ids)]
+    importance_samples = importance_sample_global(
+        sampled_df, eval_policy, base_policy, max_return, min_return
+    )
+    c_star, lower_bound = high_confidence_cal(importance_samples,confidence_level) 
 
     return lower_bound
