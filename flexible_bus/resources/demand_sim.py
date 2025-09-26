@@ -5,7 +5,6 @@ import pandas as pd
 import os
 import math
 
-
 def ridership_cal(deviate_1,deviate_2,demand_dist,tol):
     ridership = demand_dist[0] + demand_dist[1]*deviate_1 + demand_dist[2]*((1-tol)**(deviate_1)) + demand_dist[3]*deviate_2+ demand_dist[4]*((1-tol)**(deviate_2))
     
@@ -14,7 +13,8 @@ def ridership_cal(deviate_1,deviate_2,demand_dist,tol):
 def get_demand(time_period):
     demand_dist = []
     if time_period == 1:
-        expected_arrivals = [1.5,0.2,1,0.4,0.6]
+        expected_arrivals = [2, 8, 20, 9, 20]
+        #[2,0.2,1,0.4,0.6]
     elif time_period == 2:
         expected_arrivals = [0.4,0.2,0.4,0.2,0.2]
     else:
@@ -23,3 +23,4 @@ def get_demand(time_period):
         demand_dist.append(np.random.poisson(expected_arrivals[i]))
     # print(demand_dist)    
     return demand_dist
+

@@ -90,7 +90,7 @@ def traj_collect(env,traj_num, gamma, base_policy, batch_size=1000):
                 all_return.append(ret)
 
     df = pd.DataFrame(all_rows)
-    df.to_parquet("./Traject/trajectories_optimized.pq")
-    np.savetxt("./return_list_optimized.txt", all_return)
+    # df.to_parquet("./Traject/trajectories_optimized.pq")
+    # np.savetxt("./return_list_optimized.txt", all_return)
 
     return df, all_return

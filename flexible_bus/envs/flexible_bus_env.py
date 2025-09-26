@@ -23,7 +23,7 @@ class FlexibleBusEnv(gym.Env):
         self.start = None
         self.map = pd.read_csv("./flexible_bus/resources/demand/test.csv")
         self.demand_dist = None
-        self.tol = 0.1
+        self.tol = 0
         
         self.state = None
         self.done = None
