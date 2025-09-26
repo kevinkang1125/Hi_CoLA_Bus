@@ -353,12 +353,12 @@ def main():
             base_pi, model_trace, traj_list, return_list, 
             epochs=int(0.8 * traj_num), confidence_level=0.9
         )
-        param_drift,scaler_o,scaler_n = analyze_scaling_drift(
-            original_perturbs=perturbs, 
-            optimized_policies=model_trace,
-            labels=thomas_lbs
-        )
-        param_drift.to_csv(f"./exp_multi_epochs/changed_object5/parameter_drift_{b_loop}.csv", index=False)
+        # param_drift,scaler_o,scaler_n = analyze_scaling_drift(
+        #     original_perturbs=perturbs, 
+        #     optimized_policies=model_trace,
+        #     labels=thomas_lbs
+        # )
+        # param_drift.to_csv(f"./exp_multi_epochs/changed_object5/parameter_drift_{b_loop}.csv", index=False)
         # visualize_scaling_drift(param_drift)
         # Update records
         step_rec.append(len(return_trace))
